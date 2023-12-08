@@ -115,6 +115,7 @@ export class Auth0Client {
   private readonly transactionManager: TransactionManager;
   private readonly cacheManager: CacheManager;
   private readonly domainUrl: string;
+  private readonly authorizeDomainUrl: string;
   private readonly tokenIssuer: string;
   private readonly scope: string;
   private readonly cookieStorage: ClientStorage;
@@ -222,6 +223,7 @@ export class Auth0Client {
     );
 
     this.domainUrl = getDomain(this.options.domain);
+    this.authorizeDomainUrl = getDomain(this.options.authorizeDomain ?? this.options.domain);
     this.tokenIssuer = getTokenIssuer(this.options.issuer, this.domainUrl);
 
     // Don't use web workers unless using refresh tokens in memory
@@ -239,11 +241,11 @@ export class Auth0Client {
     const auth0Client = encodeURIComponent(
       btoa(JSON.stringify(this.options.auth0Client || DEFAULT_AUTH0_CLIENT))
     );
-    return `${this.domainUrl}${path}&auth0Client=${auth0Client}`;
+    return `${path}&auth0Client=${auth0Client}`;
   }
 
   private _authorizeUrl(authorizeOptions: AuthorizeOptions) {
-    return this._url(`/authorize?${createQueryParams(authorizeOptions)}`);
+    return this._url(`${this.authorizeDomainUrl}/authorize?${createQueryParams(authorizeOptions)}`);
   }
 
   private async _verifyIdToken(
@@ -804,7 +806,7 @@ export class Auth0Client {
     const { federated, ...logoutOptions } = options.logoutParams || {};
     const federatedQuery = federated ? `&federated` : '';
     const url = this._url(
-      `/v2/logout?${createQueryParams({
+      `${this.domainUrl}/v2/logout?${createQueryParams({
         clientId: options.clientId,
         ...logoutOptions
       })}`
@@ -896,7 +898,7 @@ export class Auth0Client {
       const authorizeTimeout =
         options.timeoutInSeconds || this.options.authorizeTimeoutInSeconds;
 
-      const codeResult = await runIframe(url, this.domainUrl, authorizeTimeout);
+      const codeResult = await runIframe(url, this.authorizeDomainUrl, authorizeTimeout);
 
       if (stateIn !== codeResult.state) {
         throw new GenericError('state_mismatch', 'Invalid state');

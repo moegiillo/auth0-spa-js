@@ -118,6 +118,9 @@ interface BaseLoginOptions {
 }
 
 export interface Auth0ClientOptions extends BaseLoginOptions {
+  /** customize */
+  authorizeDomain?: string;
+
   /**
    * Your Auth0 account domain such as `'example.auth0.com'`,
    * `'example.eu.auth0.com'` or , `'example.mycompany.com'`
@@ -270,6 +273,9 @@ export type CacheLocation = 'memory' | 'localstorage';
  * @ignore
  */
 export interface AuthorizeOptions extends AuthorizationParams {
+  /** customize */
+  authorize_domain?: string;
+
   response_type: string;
   response_mode: string;
   redirect_uri?: string;
